@@ -22,8 +22,6 @@ class VideosPlayerState extends State<VideosPlayer> {
   late Video video;
   late VideoPlayerController controller;
   final Duration animDuration = const Duration(milliseconds: 300);
-  final bool Visible; 
-
   Duration duration = const Duration();
   Duration position = const Duration();
   late Future<void> initializeVideoPlayerFuture;
@@ -98,16 +96,76 @@ class VideosPlayerState extends State<VideosPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container (
-      child: Column (
-        childern; [
-          Padding(
-            child: TimeDisplay()
+    return Scaffold(
+      backgroundColor: MainColor.black222222,
+      appBar: const CustomAppBar(leading: BackButtonAppBarLeading()),
+      body: Column(
+        key: const Key('root_widget'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FutureBuilder(
+            future: initializeVideoPlayerFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return GestureDetector(
+                  key: const Key('video_section'),
+                  onTap: switchControllVisibility,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: MediaQuery.sizeOf(context).width * 9 / 16,
+                        child: Stack(
+                          alignment: Alignment.bottomLeft,
+                          children: [
+                            VideoPlayer(controller),
+                            AnimatedOpacity(
+                              duration: animDuration,
+                              opacity: isVisible ? 1 : 0,
+                              child: VideoIndicator(
+                                position: position,
+                                duration: duration,
+                                controller: controller,
+                                isVisible: isVisible,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      AnimatedOpacity(
+                        duration: animDuration,
+                        opacity: isVisible ? 1 : 0,
+                        child: ControllButton(
+                          icon: controller.value.isPlaying
+                              ? Icons.pause
+                              : Icons.play_arrow,
+                          onPressed: playPause,
+                          bgColor: MainColor.black000000.withOpacity(0.2),
+                          splashR: 26,
+                          icSize: 36,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return LoadingVideoPlaceholder(
+                  sourceType: video.sourceType!,
+                  cover: video.coverPath!,
+                );
+              }
+            },
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: VideoInformation(video: video),
             ),
-          SizeBox(),
-          VideoProgressIndicator(),
-              ],
-            ),
-          )
+          ),
+        ],
+      ),
+    );
   }
 }
